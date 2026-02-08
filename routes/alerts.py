@@ -15,7 +15,7 @@ class Alerts(Resource):
     ...
     {
         "base_currency": str
-        "exchange_currency": str
+        "quote_currency": str
         "target_value": float
         "current_value": float
     }
