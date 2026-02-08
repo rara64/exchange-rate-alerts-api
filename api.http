@@ -1,0 +1,43 @@
+###
+POST http://127.0.0.1:5000/register
+Content-Type: application/json
+
+{
+    "username": "testuser",
+    "password": "TestPass123"
+}
+
+###
+# @name login
+POST http://127.0.0.1:5000/login
+Content-Type: application/json
+
+{
+    "username": "testuser",
+    "password": "TestPass123"
+}
+
+###
+
+@authToken = {{login.response.body.token}}
+
+###
+POST http://127.0.0.1:5000/targets
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "base_currency": "EUR",
+    "quote_currency": "PLN",
+    "target_value": "4.5"
+}
+
+###
+GET http://127.0.0.1:5000/targets
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+###
+GET http://127.0.0.1:5000/alerts
+Content-Type: application/json
+Authorization: Bearer {{authToken}}

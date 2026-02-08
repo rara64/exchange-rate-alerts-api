@@ -1,1 +1,1 @@
-# Currency Alerts API
+# Exchange Rates Alerts API

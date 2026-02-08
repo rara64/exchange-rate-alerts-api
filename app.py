@@ -1,27 +1,58 @@
 from flask import Flask
 from flask_restful import Api
 
-from routes.base import Base
 from routes.register import Register
 from routes.login import Login
 from routes.alerts import Alerts
+from routes.targets import Targets
 
+from os import environ
+from dotenv import load_dotenv
+from uuid import uuid4
 from pymongo import MongoClient
 
-app = Flask(__name__)
-db : MongoClient = None
+def create_app(config=None, mongo_client=None):
+    load_dotenv()
+    app = Flask(__name__)
 
-api = Api(app)
+    app.config.update(
+        TOKEN_KEEPALIVE_MINUTES = environ.get("TOKEN_KEEPALIVE_MINUTES", 15),
+        JWT_SECRET = environ.get("JWT_SECRET", str(uuid4())),
+        MONGO_STR = environ.get("MONGO_STR", ""),
+        USERS_COLLECTION = environ.get("USERS_COLLECTION", "users"),
+        TARGETS_COLLECTION = environ.get("TARGETS_COLLECTION", "targets")
+    )
 
-api.add_resource(Base, "/")
-api.add_resource(Login, "/login", resource_class_args=(db,))
-api.add_resource(Register, "/register", resource_class_args=(db,))
-api.add_resource(Alerts, "/alerts", resource_class_args=(db,))
+    if config:
+        app.config.update(config)
 
-@app.errorhandler(404)
-def not_found(e):
-    return {'message': 'Requested resource was not found.'}, 404
+    if mongo_client:
+        client = mongo_client
+    else:
+        client = MongoClient(app.config["MONGO_STR"])
+    
+    db = client["exchange_rates_alerts"]
+
+    api = Api(app)
+
+    api.add_resource(Login, "/login", resource_class_args=(db,))
+    api.add_resource(Register, "/register", resource_class_args=(db,))
+    api.add_resource(Alerts, "/alerts", resource_class_args=(db,))
+    api.add_resource(Targets, "/targets", resource_class_args=(db,))
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return {'message': 'Requested resource was not found.'}, 404
+
+    @app.route("/")
+    def base():
+        return {"message": "Everything is OK."}, 200
+    
+    return app
 
 if __name__ == "__main__":
-    db = MongoClient()
+    import mongomock
+    fake_mongo = mongomock.MongoClient()
+
+    app = create_app(mongo_client=fake_mongo)
     app.run()
