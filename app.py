@@ -51,8 +51,5 @@ def create_app(config=None, mongo_client=None):
     return app
 
 if __name__ == "__main__":
-    import mongomock
-    fake_mongo = mongomock.MongoClient()
-
-    app = create_app(mongo_client=fake_mongo)
+    app = create_app()
     app.run()
