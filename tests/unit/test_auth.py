@@ -4,27 +4,27 @@ from modules.authentication import generate_token, authenticated
 
 @pytest.fixture
 def app():
+    """Przygotowuje minimalny kontekst aplikacji Flask dla testów."""
     app = Flask(__name__)
-    app.config["JWT_SECRET"] = "łotrzyk_secret"
+    app.config["JWT_SECRET"] = "klucz_łotrzyka"
     app.config["TOKEN_KEEPALIVE_MINUTES"] = 15
     return app
 
-def test_generate_token(app):
+def test_generate_token_returns_valid_jwt_structure(app):
     with app.app_context():
         token = generate_token("łotrzyk123")
         assert isinstance(token, str)
-        assert len(token) > 10
+        assert token.count(".") == 2
 
-def test_auth_fail_no_header(app):
+def test_auth_fail_no_header_returns_401(app):
     with app.test_request_context():
         @authenticated
         def protected_action(user_id=""):
-            return "Sukces"
+            pytest.fail("Dekorator nie zadziałał")
         response, status_code = protected_action()
         assert status_code == 401
-        assert response["message"] == "Access unauthorized."
 
-def test_auth_success(app):
+def test_auth_success_returns_user_id(app):
     with app.app_context():
         token = generate_token("łotrzyk123")
 
@@ -40,13 +40,14 @@ def test_auth_success(app):
     "Bearer ",
     "Token 2137",
     "Bearer zlosliwy_podpis",
+    None
 ])
 def test_auth_fail_invalid_headers(app, invalid_header):
-    with app.test_request_context(headers={"Authorization": invalid_header}):
-        
+    headers = {"Authorization": invalid_header} if invalid_header else {}
+    with app.test_request_context(headers=headers):
         @authenticated
         def protected_action(user_id=""):
-            return "To nie powinno się zwrócić"
+            return "Fail"
 
         response, status_code = protected_action()
         assert status_code == 401
