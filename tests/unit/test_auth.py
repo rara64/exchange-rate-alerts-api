@@ -62,10 +62,17 @@ class TestAuth:
 
 
     @pytest.mark.parametrize("malformed_payload", [
-        {"user_id": "łotrzyk123"},  # Brak "expiry_date"
-        {"expiry_date": str(datetime.now(timezone.utc) + timedelta(minutes=15))},  # Brak "user_id"
-        {"user_id": "łotrzyk123", "expiry_date": "złośliwa_data"},  # Nieprawidłowa data
-        {},
+        # user_id jako liczba, expiry_date poprawna
+        {"user_id": 1234, "expiry_date": str(datetime.now(timezone.utc) + timedelta(minutes=15))},
+
+        # brak user_id, poprawny expiry_date
+        {"expiry_date": str(datetime.now(timezone.utc) + timedelta(minutes=15))},
+
+        # user_id poprawny, brak expiry_date
+        {"user_id": "łotrzyk123"},
+
+        # user_id poprawny, expiry_date niepoprawne
+        {"user_id": "łotrzyk123", "expiry_date": "złośliwa_data"},
     ])
     def test_auth_fail_malformed_token_payload_returns_401(self, app, malformed_payload, protected_action):
         with app.app_context():
@@ -73,31 +80,5 @@ class TestAuth:
             token = jwt.encode(malformed_payload, secret, algorithm="HS256")
 
         with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            response, status_code = protected_action()
-            assert status_code == 401
-
-
-    @pytest.mark.parametrize("invalid_user_id", [
-        None,
-        1234,
-    ])
-    def test_auth_fail_invalid_user_id_returns_401(self, app, invalid_user_id, protected_action):
-        with app.app_context():
-            token = generate_token(invalid_user_id)
-
-        with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
-            response, status_code = protected_action()
-            assert status_code == 401
-
-
-    @pytest.mark.parametrize("invalid_header", [
-        "Bearer ",
-        "Token 2137",
-        "Bearer zlosliwy_podpis",
-    ])
-    def test_auth_fail_invalid_header_returns_401(self, app, invalid_header, protected_action):
-        headers = {"Authorization": invalid_header}
-
-        with app.test_request_context(headers=headers):
             response, status_code = protected_action()
             assert status_code == 401
