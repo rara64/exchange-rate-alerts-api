@@ -1,18 +1,15 @@
 import pytest
 from flask import current_app
-from conftest import app, db_client, user_credentials
+from conftest import app, user_credentials, users_collection
 
 class TestRegister:
 
-    def test_register_new_user_returns_201_and_adds_a_user(self, app, db_client, user_credentials):
+    def test_register_new_user_returns_201_and_adds_a_user(self, app, user_credentials, users_collection):
         client = app.test_client()
 
         response = client.post("/register", json=user_credentials)
 
-        with app.app_context():
-            collection = db_client[current_app.config["DB_NAME"]][current_app.config["USERS_COLLECTION"]]
-
-        db_result = collection.find_one({"username": user_credentials["username"]})
+        db_result = users_collection.find_one({"username": user_credentials["username"]})
 
         assert response.status_code == 201
         assert db_result is not None
