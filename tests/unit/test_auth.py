@@ -9,7 +9,7 @@ from modules.authentication import generate_token, authenticated
 
 class TestAuth:
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def app(self):
         app = Flask(__name__)
         app.config["JWT_SECRET"] = token_urlsafe(32)
@@ -17,7 +17,7 @@ class TestAuth:
         return app
 
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def protected_action(self):
         @authenticated
         def action(user_id=""):
@@ -25,13 +25,11 @@ class TestAuth:
         return action
 
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def expired_token(self, app):
         with app.app_context():
-            old_keepalive = app.config["TOKEN_KEEPALIVE_MINUTES"]
-            app.config["TOKEN_KEEPALIVE_MINUTES"] = -1  # Token już wygasł
+            app.config["TOKEN_KEEPALIVE_MINUTES"] = -1
             token = generate_token("łotrzyk123")
-            app.config["TOKEN_KEEPALIVE_MINUTES"] = old_keepalive
         return token
 
 
