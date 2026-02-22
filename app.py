@@ -20,7 +20,8 @@ def create_app(config=None, mongo_client=None):
         JWT_SECRET = environ.get("JWT_SECRET", str(uuid4())),
         MONGO_STR = environ.get("MONGO_STR", ""),
         USERS_COLLECTION = environ.get("USERS_COLLECTION", "users"),
-        TARGETS_COLLECTION = environ.get("TARGETS_COLLECTION", "targets")
+        TARGETS_COLLECTION = environ.get("TARGETS_COLLECTION", "targets"),
+        DB_NAME = environ.get("DB_NAME", "exchange_rates_alerts")
     )
 
     if config:
@@ -31,7 +32,7 @@ def create_app(config=None, mongo_client=None):
     else:
         client = MongoClient(app.config["MONGO_STR"])
     
-    db = client["exchange_rates_alerts"]
+    db = client[app.config["DB_NAME"]]
 
     api = Api(app)
 
