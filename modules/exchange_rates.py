@@ -16,5 +16,5 @@ def get_current_market_rate(base_currency : str, quote_currency : str) -> float:
 
         return float(rate)
 
-    except Exception as e:
+    except requests.RequestException as e:
         raise RateProviderError(str(e))
