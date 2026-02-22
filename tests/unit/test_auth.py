@@ -47,8 +47,12 @@ def test_auth_success_returns_user_id(app, protected_action):
 
 def test_auth_fail_expired_token_returns_401(app, protected_action):
     with app.app_context():
+        old_keepalive = app.config["TOKEN_KEEPALIVE_MINUTES"]
+
         app.config["TOKEN_KEEPALIVE_MINUTES"] = -1  # Token już wygasł
         token = generate_token("łotrzyk123")
+
+        app.config["TOKEN_KEEPALIVE_MINUTES"] = old_keepalive
 
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         response, status_code = protected_action()
