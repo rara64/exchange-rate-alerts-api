@@ -17,6 +17,7 @@ def app():
     app.config["TOKEN_KEEPALIVE_MINUTES"] = 15
     return app
 
+
 """
 Funkcja pomocnicza do testowania dekoratora @authenticated.
 """
@@ -27,6 +28,7 @@ def protected_action():
         return user_id
     return action
 
+
 def test_generate_token_returns_valid_jwt_structure(app):
     with app.app_context():
         token = generate_token("łotrzyk123")
@@ -34,12 +36,14 @@ def test_generate_token_returns_valid_jwt_structure(app):
     assert isinstance(token, str)
     assert token.count(".") == 2
 
+
 def test_auth_success_returns_user_id(app, protected_action):
     with app.app_context():
         token = generate_token("łotrzyk123")
 
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         assert protected_action() == "łotrzyk123"
+
 
 def test_auth_fail_expired_token_returns_401(app, protected_action):
     with app.app_context():
@@ -50,10 +54,12 @@ def test_auth_fail_expired_token_returns_401(app, protected_action):
         response, status_code = protected_action()
         assert status_code == 401
 
+
 def test_auth_fail_no_header_returns_401(app, protected_action):
     with app.test_request_context():
         response, status_code = protected_action()
         assert status_code == 401
+
 
 @pytest.mark.parametrize("malformed_payload", [
     {"user_id": "łotrzyk123"},  # Brak "expiry_date"
@@ -70,6 +76,7 @@ def test_auth_fail_malformed_token_payload_returns_401(app, malformed_payload, p
         response, status_code = protected_action()
         assert status_code == 401
 
+
 @pytest.mark.parametrize("invalid_user_id", [
     None,
     1234,
@@ -81,6 +88,7 @@ def test_auth_fail_invalid_user_id_returns_401(app, invalid_user_id, protected_a
     with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
         response, status_code = protected_action()
         assert status_code == 401
+
 
 @pytest.mark.parametrize("invalid_header", [
     "Bearer ",
