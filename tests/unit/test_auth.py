@@ -7,9 +7,7 @@ from datetime import timezone, timedelta, datetime
 from flask import Flask, current_app
 from modules.authentication import generate_token, authenticated
 
-"""
-Przygotowuje minimalny kontekst aplikacji Flask dla testów.
-"""
+
 @pytest.fixture
 def app():
     app = Flask(__name__)
@@ -18,15 +16,22 @@ def app():
     return app
 
 
-"""
-Funkcja pomocnicza do testowania dekoratora @authenticated.
-"""
 @pytest.fixture
 def protected_action():
     @authenticated
     def action(user_id=""):
         return user_id
     return action
+
+
+@pytest.fixture
+def expired_token(app):
+    with app.app_context():
+        old_keepalive = app.config["TOKEN_KEEPALIVE_MINUTES"]
+        app.config["TOKEN_KEEPALIVE_MINUTES"] = -1  # Token już wygasł
+        token = generate_token("łotrzyk123")
+        app.config["TOKEN_KEEPALIVE_MINUTES"] = old_keepalive
+    return token
 
 
 def test_generate_token_returns_valid_jwt_structure(app):
@@ -45,16 +50,8 @@ def test_auth_success_returns_user_id(app, protected_action):
         assert protected_action() == "łotrzyk123"
 
 
-def test_auth_fail_expired_token_returns_401(app, protected_action):
-    with app.app_context():
-        old_keepalive = app.config["TOKEN_KEEPALIVE_MINUTES"]
-
-        app.config["TOKEN_KEEPALIVE_MINUTES"] = -1  # Token już wygasł
-        token = generate_token("łotrzyk123")
-
-        app.config["TOKEN_KEEPALIVE_MINUTES"] = old_keepalive
-
-    with app.test_request_context(headers={"Authorization": f"Bearer {token}"}):
+def test_auth_fail_expired_token_returns_401(app, protected_action, expired_token):
+    with app.test_request_context(headers={"Authorization": f"Bearer {expired_token}"}):
         response, status_code = protected_action()
         assert status_code == 401
 
