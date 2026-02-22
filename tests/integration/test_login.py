@@ -1,6 +1,4 @@
-import bcrypt
 import pytest
-from flask import current_app
 from conftest import app, db_client, user_credentials, users_collection, registered_user
 
 class TestLogin:

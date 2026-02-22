@@ -2,7 +2,6 @@ import pytest
 from app import create_app
 from mongomock import MongoClient
 import bcrypt
-from bson import ObjectId
 
 @pytest.fixture(scope="function")
 def db_client():

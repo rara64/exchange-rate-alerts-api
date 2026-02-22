@@ -1,5 +1,4 @@
 import pytest
-from flask import current_app
 from conftest import app, user_credentials, users_collection
 
 class TestRegister:

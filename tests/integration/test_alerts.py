@@ -1,7 +1,4 @@
-import bcrypt
 import pytest
-from flask import current_app
-from bson import ObjectId
 from unittest.mock import patch
 from requests import Response
 from conftest import app, db_client, user_credentials, targets_collection, users_collection, dummy_target, registered_user, dummy_target_in_db
