@@ -10,7 +10,7 @@ from os import environ
 from dotenv import load_dotenv
 from uuid import uuid4
 from pymongo import MongoClient
-
+# AAAA
 def create_app(config=None, mongo_client=None):
     load_dotenv()
     app = Flask(__name__)
